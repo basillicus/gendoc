@@ -10,38 +10,57 @@ INPUT:
             - section|sec "Name of the section" generates a section
             - subsection|ssec "Name of the subsection" generates a subsection
 TODO:
-    - Add -i input_file and -o output_file when calling the script
-    - Add the option to autocompile the document
+    - Add -i input_file and -o output_file when calling the script: Done!
+    - Add the option to autocompile the document: Done!
+    - Add the option to write the log file
 '''
 
 import os
 import sys
 import subprocess
 import doctools
-# import filetools
-
+import argparse
 # TODO: 
-# import argparse
-# 
-# parser = argparse.ArgumentParser(description='Generates a document gathering the information from input file')
-# parser.add_argument('integers', metavar='N', type=int, nargs='+',
-#                     help='an integer for the accumulator')
-# parser.add_argument('--sum', dest='accumulate', action='store_const',
-#                     const=sum, default=max,
-#                     help='sum the integers (default: find the max)')
-# 
-# args = parser.parse_args()
-# print args.accumulate(args.integers)
+# import filetools # For mixing two different input_files
 
-output_file = "documentation.tex"
-input_file  = "tip_files"
-compile_doc = True
-f = open(output_file, "w")
+parser = argparse.ArgumentParser(description='Generates a document gathering the information from the input file')
+
+parser.add_argument('--infile', '-i',  type=str, nargs='?', default="input_file.txt", dest='input_file',
+                     help='''input file containing all the paths to the figures to be included in the document.  # are interpreted as coments.  Sections and subsections can be included as:
+                          section|sec "Name of the section"  .or.   subsection|ssec "Name of the subsection"''')
+parser.add_argument('--outfile', '-o', type=str, nargs='?', default='documentation.tex', dest='output_file',
+                    help='''output .tex file''')
+parser.add_argument('--logo', '-l', type=str, nargs='?', default='', dest='logo_file',
+                    help='''Include the logo in the cover''')
+parser.add_argument( '--compile', '-c', default='True', dest='compile_doc', action='store_true',
+                    help='Compile the .tex file to create the .pdf document')
+parser.add_argument( '--no-compile', '-nc', dest='compile_doc', action='store_false',
+                    help='Do not compile the .tex file ')
+
+# Collecting args into variables
+args = parser.parse_args(sys.argv[1:])
+compile_doc = args.compile_doc
+output_file = args.output_file
+input_file  = args.input_file
+logo=args.logo_file
+
+# Checkin for errors and consistency
+#-----------------------------------
+if input_file == output_file:
+    print ("ERROR: Input file and output file can not be the same.")
+    sys.exit()
+# Check the input file exists
+if not os.path.exists("./"+input_file):
+    print ("ERROR: Input file " + input_file + " not found!. Try: ")
+    print ("    gendoc -i <input_file> ")
+    sys.exit()
 
 # Files imported this way are Bytes, not strings --> Need to be converted to UTF-8 (decode('UTF-8') function)
-cmd = 'cat ' + input_file
+cmd = 'cat ' + args.input_file
 files = subprocess.check_output(cmd, shell=True).decode('UTF-8').split("\n") # Stores the output of the cmd
 files=files[:-1] # Removing the last item (blank one due to spliting with \n)
+
+f = open(args.output_file, "w")
 
 # Generate the title, author, institute
 doctools.add_header (f,
@@ -54,7 +73,7 @@ doctools.add_header (f,
                      Department of Physics""",
                      institute_short = "KCL")
 
-doctools.add_cover (f)
+doctools.add_cover (f,logo)
 for file_path in files:
     # Coments will be ignored
     # Ignore commented and empty lines

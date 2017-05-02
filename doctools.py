@@ -148,18 +148,29 @@ def add_slide (f,figure_path="",title="", caption=""):
 # # 
 # 
 
-def add_cover (f):
-   f.write('''
+def add_cover (f,logo=""):
+    if logo != "":
+       f.write('''
 \\begin{frame}[plain, label=title]
 \\titlepage
 \\begin{columns}
     \\begin{column}{0.34\\linewidth}
         \\begin{figure}[h]
             \\begin{center}
-                \\includegraphics[scale=0.08]{logo.png}
+                \\includegraphics[scale=0.08]{''' + logo + '''}
                 \\label{}
             \\end{center}
         \\end{figure}
+    \\end{column}
+\\end{columns}
+\\end{frame}
+''')
+    else:
+       f.write('''
+\\begin{frame}[plain, label=title]
+\\titlepage
+\\begin{columns}
+    \\begin{column}{0.34\\linewidth}
     \\end{column}
 \\end{columns}
 \\end{frame}
@@ -335,6 +346,7 @@ def find_notes(path):
     return notes
 
 def compile_doc (f):
-    cmd = "pdflatex " + f + " > /dev/null  2&>1"
+    # cmd = "pdflatex " + f + " > /dev/null  2&>1"
+    cmd = "pdflatex " + f + "   2&1> /dev/null "
     print ("compile_doc: compiling " + f + " as: " + cmd )
     os.system(cmd)

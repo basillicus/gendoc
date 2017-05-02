@@ -1,0 +1,7 @@
+load OUTCAR
+color background white
+set perspectiveDepth true
+animation last
+moveto /* time, axisAngle */ 1.0 { -483 -617 -621 126.63}
+write image 1600 1200 jpg 95 "TIP.jpg"
+

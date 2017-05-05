@@ -24,6 +24,7 @@ def add_header (f,title      = "NC-AFM Tips exploration",
 %\\usepackage[latin1]{inputenc}
 %\\usepackage[spanish]{babel}
 \\usepackage{multimedia}
+\\usepackage{graphicx}
 %\\usepackage{animate}
 
 \\usepackage{listings} % To include pieces of text or code directly on the report
@@ -85,18 +86,137 @@ columns=fullflexible
 \\renewcommand{\\figurename}{}
 ''')
 
+# def add_compact_slide (f, file_pile, figure_path="", force_writing=False):
+#     # TODO: Move this variable to a module with general parameters
+#     images_per_slide = 6
+#     file_pile.append(figure_path)
+#     if len(file_pile) < images_per_slide and not force_writing:
+#         return
+#     else:
+#         f.write('''% -------------------------------------------------------------------------
+# \\begin{frame}
+# \\frametitle{}
+# \\begin{columns}
+# ''')
+#         for figure in file_pile:
+#             figure_path=figure.strip()
+#             dirs=figure_path.split("/")[:-1]
+#             path=""
+#             for dir in dirs:
+#                 path+=dir + "/"
+#             outcar = parse_outcar(path)
+#             # Add a column per each file
+#             # TODO: Try to create a table 3x3
+#             f.write('''% -------------------------------------------------------------------------
+#     \\begin{column}{0.3\\textwidth}
+#         \\begin{figure}[h]
+#             \\begin{center}
+#                 \\includegraphics[width=0.9\\textwidth]{''' + figure_path + '''}
+#                  \\caption{ \\tiny{''' + outcar + '''}}
+#                 \\label{}
+#             \\end{center}
+#         \\end{figure}
+#     \\scalebox{.25}{\\protect\\detokenize{''' + path + '''}}
+#     \\end{column}
+# ''')
+#         f.write('''
+# \\end{columns}
+# \\end{frame}
+# 
+# ''')
+#         # Empty file_pile
+#         file_pile=[]
+#         return
+
+
+def add_compact_slide (f, file_pile, figure_path="", force_writing=False, label=""):
+    # TODO: Move this variable to a module with general parameters
+    images_per_slide = 6
+    if figure_path != "":
+        file_pile.append(figure_path)
+    if len(file_pile) < images_per_slide and not force_writing:
+        return
+    else:
+        new_column=True
+        f.write('''% -------------------------------------------------------------------------
+\\begin{frame}
+\\frametitle{}
+\\vspace{-0.9cm}
+\\begin{columns}
+''')
+        for figure in file_pile:
+            figure_path=figure.strip()
+            dirs=figure_path.split("/")[:-1]
+            path=""
+            for dir in dirs:
+                path+=dir + "/"
+            outcar = parse_outcar(path)
+            outcar = sanitise_outcar (outcar)
+            # Add a column per each file
+            # TODO: Try to create a table 3x3
+            if new_column:
+                f.write('''% -------------------------------------------------------------------------
+        \\begin{column}[t]{.32\\textwidth}
+        \\begin{figure}
+        \\centering
+                    \\includegraphics[width=0.9\\linewidth]{''' + figure_path + '''}
+            \\caption{ \\scalebox{0.45}{''' + outcar + '''}}
+            \\label{''' + label + '''}
+        \\end{figure}
+\\vspace{-1.5cm}
+     \\scalebox{.10}{\\protect\\detokenize{''' + path + '''}}
+
+''')
+                new_column=False 
+            else:
+                f.write('''% -------------------------------------------------------------------------
+        \\begin{figure}
+        \\centering
+                    \\includegraphics[width=0.9\\linewidth]{''' + figure_path + '''}
+            \\caption{ \\scalebox{0.45}{''' + outcar + '''}}
+            \\label{''' + label + '''}
+\\vspace{-1.5cm}
+            \\scalebox{.10}{\\protect\\detokenize{''' + path + '''}}
+        \\end{figure}
+        \\end{column}
+
+''')
+                new_column=True
+        if not new_column:
+            f.write('''\\end{column}
+                    ''')
+        f.write('''
+\\end{columns}
+\\end{frame}
+
+''')
+        # Empty file_pile
+        print ("dooctols before emptiing", file_pile)
+        del file_pile[:]
+        print ("dooctols after emptiing", file_pile)
+        return
+
+def sanitise_outcar (outcar):
+    san_outcar=[]
+    for line in outcar:
+        for char in line:
+            # if char !=" ":
+            if char !="\n":
+                san_outcar.append(char)
+    outcar = ''.join(san_outcar)
+    return outcar
+
+
+
 def add_slide (f,figure_path="",title="", caption=""):
     figure_path=figure_path.strip()
     dirs=figure_path.split("/")[:-1]
     path=""
     for dir in dirs:
         path+=dir + "/"
-    # TODO:  parse_outcar() and find_notes()
     incar = parse_incar(path)
     outcar = parse_outcar(path)
-    # outcar =""
     notes = find_notes(path)
-    # notes = ""
 
     f.write('''% -------------------------------------------------------------------------
 \\begin{frame}
@@ -295,18 +415,18 @@ def parse_outcar (path):
                 cell += [[float(temp[0]), float(temp[1]), float(temp[2])]]
         if 'FREE ENERGIE OF THE ION-ELECTRON SYSTEM' in line:
             energy = float(data[n+2].split()[4])
-        if 'reached required accuracy' in line: 
+        if 'reached required accuracy' in line:
             converged = True
 
     # Formatting the output
     outcar=""
-    outcar += "n. atoms = " + str(natoms) + "\n"
+    outcar += "n. at = " + str(natoms) + ";\n"
     for i in range(len(species)):
         outcar += species[i] + ": " + str(species_num[i]) + "; "
     outcar +="\n\n"
-    outcar += "Energy = " + str(energy) + "\n\n"
+    outcar += "E = " + str(energy) + "; \n\n"
     if not converged:
-        outcar += "WARNING: Calculation not converged!\n"
+        outcar += "WARNING:not converged!\n"
 
     os.chdir(CWD)
     return outcar

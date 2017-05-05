@@ -32,6 +32,8 @@ parser.add_argument('--outfile', '-o', type=str, nargs='?', default='documentati
                     help='''output .tex file''')
 parser.add_argument('--logo', '-l', type=str, nargs='?', default='', dest='logo_file',
                     help='''Include the logo in the cover''')
+parser.add_argument('--kind', '-k', type=str, nargs='?', default='general', dest='doc_kind',
+                    help='''Defines the kind of document. Opts are: general|compact''')
 parser.add_argument( '--compile', '-c', default='True', dest='compile_doc', action='store_true',
                     help='Compile the .tex file to create the .pdf document')
 parser.add_argument( '--no-compile', '-nc', dest='compile_doc', action='store_false',
@@ -44,8 +46,12 @@ output_file = args.output_file
 input_file  = args.input_file
 logo=args.logo_file
 
-# Checkin for errors and consistency
-#-----------------------------------
+doc_kind    = args.doc_kind
+file_pile=[] # Used for the compatc kind of document (creats a new slide after 6 images)
+force_writing = False
+
+# Checking for errors and consistency
+#------------------------------------
 if input_file == output_file:
     print ("ERROR: Input file and output file can not be the same.")
     sys.exit()
@@ -79,30 +85,42 @@ for file_path in files:
     # Ignore commented and empty lines
     # TODO: A line with only blanks breaks the program --> Fix
     if file_path.strip()[0] == "#": continue
-    if file_path.strip().split()[0] == "sec" or file_path.strip().split()[0] == "section" :
+    elif file_path.strip().split()[0] == "sec" or file_path.strip().split()[0] == "section" :
         sec_name = file_path.strip().split('"')[1]
-        doctools.add_section(f,sec_name)
+        if len(file_pile) > 0:
+            doctools.add_compact_slide (f,file_pile,figure_path="", force_writing=True)
         # KKK
         print ("Section added: " + sec_name )
+        doctools.add_section(f,sec_name)
         continue
-    if file_path.strip().split()[0] == "ssec" or file_path.strip().split()[0] == "subsection":
+    elif file_path.strip().split()[0] == "ssec" or file_path.strip().split()[0] == "subsection":
         subsec_name = file_path.strip().split('"')[1]
+        if len(file_pile) > 0:
+            doctools.add_compact_slide (f,file_pile,figure_path="", force_writing=True)
+        doctools.add_subsection(f,subsec_name)
         # KKK
         print ("subsection added: " + subsec_name)
-        doctools.add_subsection(f,subsec_name)
         continue
     # Does nothing in the beamer. AFAIK
-    if file_path.strip().split()[0] == "sssec" or file_path.strip().split()[0] == "subsubsection" :
+    elif file_path.strip().split()[0] == "sssec" or file_path.strip().split()[0] == "subsubsection" :
         subsubsec_name = file_path.strip().split('"')[1]
         doctools.add_subsubsection(f,subsubsec_name)
         # KKK
         print ("Subsubection added: " + sec_name )
         continue
     # print ("add slide: " + file_path )
-    doctools.add_slide (f,file_path)
+    else:
+        if doc_kind == 'general':
+            doctools.add_slide (f,file_path)
+        elif doc_kind == 'compact':
+            # KKK
+            # print ("--------------")
+            # for i in file_pile:
+            #     print (i)
+            doctools.add_compact_slide (f,file_pile,file_path, force_writing)
+
+
 doctools.end_document(f)
 
 if compile_doc:
     doctools.compile_doc(output_file)
-
-

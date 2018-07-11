@@ -2,6 +2,7 @@
 
 ''' reads the <input_file> file and generates a beamer presentation with the images in that file (one slide per image)
 and with the information (INCAR and NOTES files) contained in the image's folder.
+<input_files> has to contain the absoulute path to the image to be included in the documentation
 INPUT:
     - No input required, but input_file files has to exist in the current folder.
     - files file: Path to the images to be included in the presentantion
@@ -13,6 +14,7 @@ TODO:
     - Add -i input_file and -o output_file when calling the script: Done!
     - Add the option to autocompile the document: Done!
     - Add the option to write the log file
+    - FIX: Style compact does not print the last section!!
 '''
 
 import os

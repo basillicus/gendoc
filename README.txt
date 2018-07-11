@@ -1,10 +1,14 @@
+
+It is a script to quickly generate a presentation with the results of a set of VASP calculations. 
+Generates a  presentation-like pdf file with the images especified in the input_file. It parses the OUTCAR file existing in the folder the images are and includes certain parameters in the output document. If a NOTES file exists in the folder, it will be also included. 
+
 Usage:
 ------
 Just call the script as: 
 
-    gendoc
+    gendoc -i input_file 
 
-    * In the folder has to exist a file with the paths to the images to be included in the document. Example: 
+    * input_file: It has to exist in the current folder. Is a file with the absolute paths to the images to be included in the document. Example: 
 
 sec "Title of the section"
 /home/david/calc/GaAs/tips/vasp/10_CollectionOfTips/60_DifferentBulkTerminations/31_DimerTerminated_MoreSaturated/10_As-As_dimer/TIP.jpg
@@ -38,7 +42,7 @@ NOTE: Avoid blank lines in the file as it is not parsed correctly yet
 * parse_outcar (): Done!
 * include_notes () Done!
     - Extract last modification date from the file
-* Add -i and -o for input and output files option respectively
+* Add -i and -o for input and output files option respectively Done!
 * Add option to choose the theme (-t )
     - Can be used like: Blue theme for finished results, orange theme for work in progress, for example.
 * Add option to choose wether compile or not (-c )
@@ -70,5 +74,6 @@ Idea about how to proceed:
 
     * When the input_file has been generated and edited accordingly (sec and subsect added) run: 
             
-        gendoc
-
+        gendoc -i input_file
+        
+     gendoc -h  will show the help
